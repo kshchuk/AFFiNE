@@ -82,9 +82,25 @@ export const AFFiNE_WORKSPACE_USERDATA_DB_SCHEMA = {
     integrationId: f.string(),
     refMeta: f.json(),
   },
+  /**
+   * Per-user reminders for `date` doc properties.
+   * Kept in the user data (not in the workspace data) so a reminder only
+   * notifies the person who enabled it, and follows them across devices.
+   */
+  docReminder: {
+    // `${docId}:${propertyId}`
+    id: f.string().primaryKey(),
+    docId: f.string(),
+    propertyId: f.string(),
+    // when to notify, relative to the date value of the property
+    offset: f.enum('on-day', '1-day', '2-days', '1-week'),
+  },
 } as const satisfies DBSchemaBuilder;
 export type AFFiNEWorkspaceUserdataDbSchema =
   typeof AFFiNE_WORKSPACE_USERDATA_DB_SCHEMA;
 export type DocIntegrationRef = ORMEntity<
   AFFiNEWorkspaceUserdataDbSchema['docIntegrationRef']
+>;
+export type DocReminderRecord = ORMEntity<
+  AFFiNEWorkspaceUserdataDbSchema['docReminder']
 >;

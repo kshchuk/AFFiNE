@@ -23,6 +23,7 @@ import { FilterValueMenu } from '../filter/filter-value-menu';
 import { FilterOptionsGroup } from '../filter/options';
 import type { PropertyValueProps } from '../properties/types';
 import * as styles from './date.css';
+import { DateReminderMenuItems } from './date-reminder';
 
 const useParsedDate = (value: string) => {
   const parsedValue =
@@ -42,6 +43,7 @@ const useParsedDate = (value: string) => {
 };
 
 export const DateValue = ({
+  propertyInfo,
   value,
   onChange,
   readonly,
@@ -65,7 +67,17 @@ export const DateValue = ({
       contentOptions={{
         style: BUILD_CONFIG.isMobileEdition ? { padding: '15px 20px' } : {},
       }}
-      items={<DatePicker value={parsedValue} onChange={onChange} />}
+      items={
+        <>
+          <DatePicker value={parsedValue} onChange={onChange} />
+          {propertyInfo ? (
+            <DateReminderMenuItems
+              propertyId={propertyInfo.id}
+              hasDate={!!parsedValue}
+            />
+          ) : null}
+        </>
+      }
     >
       <PropertyValue
         className={parsedValue ? '' : styles.empty}

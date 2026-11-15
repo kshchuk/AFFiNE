@@ -677,6 +677,7 @@ __metadata:
     "@capacitor/haptics": "npm:^8.0.0"
     "@capacitor/ios": "npm:^8.4.2"
     "@capacitor/keyboard": "npm:^8.0.0"
+    "@capacitor/local-notifications": "npm:^8.3.0"
     "@toeverything/infra": "workspace:^"
     "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^19.0.2"
@@ -3632,6 +3633,15 @@ __metadata:
   peerDependencies:
     "@capacitor/core": ">=8.0.0"
   checksum: 10/46d7adcfdf500d7652e3d684f6ce93a93058c395acc4da54f024c6b9987f6517e900e3cc4a765435e118472b2dde71b33e662c063f16d8c31cf2df34566b5fe2
+  languageName: node
+  linkType: hard
+
+"@capacitor/local-notifications@npm:^8.3.0":
+  version: 8.3.1
+  resolution: "@capacitor/local-notifications@npm:8.3.1"
+  peerDependencies:
+    "@capacitor/core": ">=8.0.0"
+  checksum: 10/e8442bbfbfaffe379256bad2e00704fa0049abedc1b439344e498cae9cc9da895cc4d47a041d55e9a0d726543d87f0e1351b0e5d3cc4828adc7829562a3e29e0
   languageName: node
   linkType: hard
 

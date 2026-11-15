@@ -24,6 +24,7 @@ import { configureDocModule } from './doc';
 import { configureDocDisplayMetaModule } from './doc-display-meta';
 import { configureDocInfoModule } from './doc-info';
 import { configureDocLinksModule } from './doc-link';
+import { configureDocReminderModule } from './doc-reminder';
 import { configureDocSummaryModule } from './doc-summary';
 import { configureDocsSearchModule } from './docs-search';
 import { configureEditorModule } from './editor';
@@ -129,6 +130,7 @@ export function configureCommonModules(framework: Framework) {
   configureImportClipperModule(framework);
   configureNotificationModule(framework);
   configureIntegrationModule(framework);
+  configureDocReminderModule(framework);
   configureWorkspacePropertyModule(framework);
   configureCollectionRulesModule(framework);
   configureIndexerEmbeddingModule(framework);

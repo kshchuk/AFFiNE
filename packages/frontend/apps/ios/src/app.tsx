@@ -24,6 +24,7 @@ import {
 import { registerNativePreviewHandlers } from '@affine/core/modules/code-block-preview-renderer';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { DocsService } from '@affine/core/modules/doc';
+import { LocalNotificationProvider } from '@affine/core/modules/doc-reminder';
 import { FeatureFlagService } from '@affine/core/modules/feature-flag';
 import { GlobalContextService } from '@affine/core/modules/global-context';
 import { I18nProvider } from '@affine/core/modules/i18n';
@@ -67,6 +68,7 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Haptics } from '@capacitor/haptics';
 import { Keyboard, KeyboardStyle } from '@capacitor/keyboard';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import {
   Framework,
   FrameworkRoot,
@@ -87,6 +89,10 @@ import { AffineTheme } from './plugins/affine-theme';
 import { Auth } from './plugins/auth';
 import { Hashcash } from './plugins/hashcash';
 import { ImagePicker } from './plugins/image-picker';
+import {
+  createLocalNotificationProvider,
+  getReminderNotificationPath,
+} from './plugins/local-notification';
 import { NavigationGesture } from './plugins/navigation-gesture';
 import { NbStoreNativeDBApis } from './plugins/nbstore';
 import { PayWall } from './plugins/paywall';
@@ -240,6 +246,7 @@ framework.impl(HapticProvider, {
   selectionChanged: () => Haptics.selectionChanged(),
   selectionEnd: () => Haptics.selectionEnd(),
 });
+framework.impl(LocalNotificationProvider, createLocalNotificationProvider());
 framework.scope(ServerScope).override(AuthProvider, resolver => {
   const serverService = resolver.get(ServerService);
   const endpoint = serverService.server.baseUrl;
@@ -708,6 +715,17 @@ CapacitorApp.addListener('appStateChange', ({ isActive }) => {
     servers.map(server => getValidAccessToken(server.baseUrl))
   ).catch(console.error);
 }).catch(console.error);
+
+// open the doc when the user taps a doc reminder
+LocalNotifications.addListener(
+  'localNotificationActionPerformed',
+  ({ notification }) => {
+    const path = getReminderNotificationPath(notification.extra);
+    if (path) {
+      router.navigate(path).catch(console.error);
+    }
+  }
+).catch(console.error);
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (typeof error === 'string' && error) {

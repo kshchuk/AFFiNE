@@ -4887,6 +4887,62 @@ export function useAFFiNEI18N(): {
       */
     ["com.affine.payment.license-success.copy"](): string;
     /**
+      * `Remind me`
+      */
+    ["com.affine.doc-reminder.title"](): string;
+    /**
+      * `Don't remind`
+      */
+    ["com.affine.doc-reminder.off"](): string;
+    /**
+      * `On the day, 9:00`
+      */
+    ["com.affine.doc-reminder.offset.on-day"](): string;
+    /**
+      * `1 day before, 9:00`
+      */
+    ["com.affine.doc-reminder.offset.1-day"](): string;
+    /**
+      * `2 days before, 9:00`
+      */
+    ["com.affine.doc-reminder.offset.2-days"](): string;
+    /**
+      * `1 week before, 9:00`
+      */
+    ["com.affine.doc-reminder.offset.1-week"](): string;
+    /**
+      * `{{property}} is today`
+      */
+    ["com.affine.doc-reminder.notification.on-day"](options: {
+        readonly property: string;
+    }): string;
+    /**
+      * `{{property}} is tomorrow`
+      */
+    ["com.affine.doc-reminder.notification.1-day"](options: {
+        readonly property: string;
+    }): string;
+    /**
+      * `{{property}} is in 2 days`
+      */
+    ["com.affine.doc-reminder.notification.2-days"](options: {
+        readonly property: string;
+    }): string;
+    /**
+      * `{{property}} is in a week`
+      */
+    ["com.affine.doc-reminder.notification.1-week"](options: {
+        readonly property: string;
+    }): string;
+    /**
+      * `Untitled`
+      */
+    ["com.affine.doc-reminder.untitled-doc"](): string;
+    /**
+      * `Notifications are turned off. Allow notifications for AFFiNE in the system settings to get reminders.`
+      */
+    ["com.affine.doc-reminder.permission-denied"](): string;
+    /**
       * `View analytics`
       */
     ["com.affine.doc.analytics.title"](): string;

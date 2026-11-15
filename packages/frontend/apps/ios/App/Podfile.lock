@@ -10,6 +10,8 @@ PODS:
     - Capacitor
   - CapacitorKeyboard (8.0.5):
     - Capacitor
+  - CapacitorLocalNotifications (8.3.1):
+    - Capacitor
   - CapacitorPluginAppTrackingTransparency (3.0.0):
     - Capacitor
   - CryptoSwift (1.8.3)
@@ -21,6 +23,7 @@ DEPENDENCIES:
   - "CapacitorCordova (from `../../../../../node_modules/@capacitor/ios`)"
   - "CapacitorHaptics (from `../../../../../node_modules/@capacitor/haptics`)"
   - "CapacitorKeyboard (from `../../../../../node_modules/@capacitor/keyboard`)"
+  - "CapacitorLocalNotifications (from `../../../../../node_modules/@capacitor/local-notifications`)"
   - CapacitorPluginAppTrackingTransparency (from `../../../../../node_modules/capacitor-plugin-app-tracking-transparency`)
   - CryptoSwift (~> 1.8.3)
 
@@ -41,6 +44,8 @@ EXTERNAL SOURCES:
     :path: "../../../../../node_modules/@capacitor/haptics"
   CapacitorKeyboard:
     :path: "../../../../../node_modules/@capacitor/keyboard"
+  CapacitorLocalNotifications:
+    :path: "../../../../../node_modules/@capacitor/local-notifications"
   CapacitorPluginAppTrackingTransparency:
     :path: "../../../../../node_modules/capacitor-plugin-app-tracking-transparency"
 
@@ -51,9 +56,10 @@ SPEC CHECKSUMS:
   CapacitorCordova: 345eacdc4c8282415446aea4acd8c77d82480bd4
   CapacitorHaptics: 296f771ecd89c7a1bd92a7b6826a7d268e2e70f5
   CapacitorKeyboard: b6b0744890cdb1d9a96e2cafcc9253fdcc55de3b
+  CapacitorLocalNotifications: e0747a329ddde3074d52dc74a003688af90e42be
   CapacitorPluginAppTrackingTransparency: f0df8fe65d07d3854de3dad832caf192262bbaa5
   CryptoSwift: 967f37cea5a3294d9cce358f78861652155be483
 
-PODFILE CHECKSUM: c36da240bb7ce656c8648d643cd942599f770b59
+PODFILE CHECKSUM: e7b44ebce0584f0935bd1b8addb3afa12b870f29
 
 COCOAPODS: 1.17.0
