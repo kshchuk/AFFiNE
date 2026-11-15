@@ -78,3 +78,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
   }
 }
+
+// Apps built with the iOS 27 SDK must adopt the UIScene lifecycle, otherwise they crash on
+// launch (UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption). Minimal scene: the same
+// Main storyboard; the window is handed to AppDelegate and URL/activity events go to its handlers.
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  private var appDelegate: AppDelegate? { UIApplication.shared.delegate as? AppDelegate }
+
+  func scene(_ scene: UIScene, willConnectTo _: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    guard scene is UIWindowScene else { return }
+    appDelegate?.window = window
+    if let context = connectionOptions.urlContexts.first {
+      _ = appDelegate?.application(UIApplication.shared, open: context.url, options: [:])
+    }
+  }
+
+  func sceneDidBecomeActive(_: UIScene) {
+    appDelegate?.window = window
+    appDelegate?.applicationDidBecomeActive(UIApplication.shared)
+  }
+
+  func scene(_: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    for context in URLContexts {
+      _ = appDelegate?.application(UIApplication.shared, open: context.url, options: [:])
+    }
+  }
+
+  func scene(_: UIScene, continue userActivity: NSUserActivity) {
+    _ = appDelegate?.application(UIApplication.shared, continue: userActivity) { _ in }
+  }
+}
