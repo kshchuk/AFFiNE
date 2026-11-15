@@ -24,7 +24,9 @@ import {
 import { createNode } from './node-builder';
 
 const SQLITE_INDEXER_VERSION_OFFSET = 1;
-const NATIVE_INDEXER_MAX_LIMIT = 0xffffffff;
+// The native (memory-indexer) backend rejects windows where offset + limit > 10_000
+// ("search window exceeds 10000"), so `Infinity` must be clamped to that window.
+const NATIVE_INDEXER_MAX_LIMIT = 10_000;
 
 export class SqliteIndexerStorage extends IndexerStorageBase {
   static readonly identifier = 'SqliteIndexerStorage';
@@ -84,7 +86,7 @@ export class SqliteIndexerStorage extends IndexerStorageBase {
       String(table),
       toNativeQuery(query),
       String(field),
-      toNativeLimit(limit),
+      toNativeLimit(limit, skip),
       skip,
       options?.hits
         ? toNativeOptions(options.hits, hitLimit, hitSkip)
@@ -241,7 +243,7 @@ function toNativeOptions(
 ): NativeIndexSearchOptions {
   const highlights = options?.highlights?.map(item => String(item.field)) ?? [];
   return {
-    limit: toNativeLimit(limit),
+    limit: toNativeLimit(limit, offset),
     offset,
     fields: [
       ...new Set([...(options?.fields?.map(String) ?? []), ...highlights]),
@@ -250,6 +252,7 @@ function toNativeOptions(
   };
 }
 
-function toNativeLimit(limit: number) {
-  return limit === Infinity ? NATIVE_INDEXER_MAX_LIMIT : limit;
+function toNativeLimit(limit: number, offset = 0) {
+  const max = Math.max(0, NATIVE_INDEXER_MAX_LIMIT - offset);
+  return Math.min(limit, max);
 }
