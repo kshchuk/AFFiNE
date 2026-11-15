@@ -62,6 +62,10 @@ export class DatabaseBlockDataSource extends DataSourceBase {
     return this._model.store.provider;
   }
 
+  override get locator() {
+    return { docId: this._model.store.id, blockId: this._model.id };
+  }
+
   spacialProperties: Record<string, SpacialProperty> = {
     'created-time': {
       valueSet: () => {},

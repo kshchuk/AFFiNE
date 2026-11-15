@@ -73,6 +73,12 @@ export interface DataSource {
   propertyDelete(id: string): void;
   propertyCanDelete(propertyId: string): boolean;
 
+  /**
+   * Where the data is stored, for features that need to refer back to it.
+   * Only available when the data lives in a block of a doc.
+   */
+  readonly locator?: { docId: string; blockId: string };
+
   provider: ServiceProvider;
   serviceGet<T>(key: GeneralServiceIdentifier<T>): T | null;
   serviceGetOrCreate<T>(key: GeneralServiceIdentifier<T>, create: () => T): T;
@@ -116,6 +122,10 @@ export abstract class DataSourceBase implements DataSource {
   protected container = new Container();
 
   abstract get parentProvider(): ServiceProvider;
+
+  get locator(): { docId: string; blockId: string } | undefined {
+    return undefined;
+  }
 
   abstract featureFlags$: ReadonlySignal<DatabaseFlags>;
 

@@ -83,6 +83,18 @@ describe('getReminderNotificationPath', () => {
     ).toBe('/workspace/ws%201/doc');
   });
 
+  test('brings the database of a cell reminder into view', () => {
+    expect(
+      getReminderNotificationPath({
+        kind: 'doc-reminder',
+        workspaceId: 'ws',
+        docId: 'doc',
+        databaseBlockId: 'db 1',
+        rowId: 'row',
+      })
+    ).toBe('/workspace/ws/doc?blockIds=db%201');
+  });
+
   test('ignores other notifications', () => {
     expect(getReminderNotificationPath(null)).toBeNull();
     expect(getReminderNotificationPath({})).toBeNull();

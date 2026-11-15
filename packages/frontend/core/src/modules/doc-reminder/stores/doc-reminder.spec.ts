@@ -66,4 +66,71 @@ describe('DocReminderStore', () => {
       { docId: 'doc', propertyId: 'b', offset: '2-days' },
     ]);
   });
+
+  test('creates, updates and removes a reminder of a database cell', () => {
+    const store = setup();
+    const list = store.watchCellReminders();
+    const target = {
+      docId: 'doc',
+      databaseBlockId: 'db',
+      rowId: 'row',
+      columnId: 'col',
+    };
+    const single = store.watchCellReminder(target);
+    list.subscribe(() => {});
+    single.subscribe(() => {});
+    expect(list.value).toEqual([]);
+
+    store.setCellReminder({ ...target, offset: '1-day' });
+    expect(list.value).toEqual([{ ...target, offset: '1-day' }]);
+    expect(single.value).toEqual({ ...target, offset: '1-day' });
+
+    // one reminder per cell
+    store.setCellReminder({ ...target, offset: '2-days' });
+    expect(list.value).toEqual([{ ...target, offset: '2-days' }]);
+
+    store.removeCellReminder(target);
+    expect(list.value).toEqual([]);
+    expect(single.value).toBeUndefined();
+  });
+
+  test('keeps the cells of a database apart from each other', () => {
+    const store = setup();
+    const a = {
+      docId: 'doc',
+      databaseBlockId: 'db',
+      rowId: 'row-1',
+      columnId: 'col',
+    };
+    const b = { ...a, rowId: 'row-2' };
+    const c = { ...a, databaseBlockId: 'db-2' };
+    store.setCellReminder({ ...a, offset: 'on-day' });
+    store.setCellReminder({ ...b, offset: 'on-day' });
+    store.setCellReminder({ ...c, offset: 'on-day' });
+    store.removeCellReminder(b);
+
+    const list = store.watchCellReminders();
+    list.subscribe(() => {});
+    expect(
+      list.value.map(r => `${r.databaseBlockId}:${r.rowId}`).sort()
+    ).toEqual(['db-2:row-1', 'db:row-1']);
+  });
+
+  test('database cell reminders do not mix with doc property reminders', () => {
+    const store = setup();
+    store.setReminder({ docId: 'doc', propertyId: 'prop', offset: 'on-day' });
+    store.setCellReminder({
+      docId: 'doc',
+      databaseBlockId: 'db',
+      rowId: 'row',
+      columnId: 'prop',
+      offset: '1-week',
+    });
+    const reminders = store.watchReminders();
+    const cells = store.watchCellReminders();
+    reminders.subscribe(() => {});
+    cells.subscribe(() => {});
+    expect(reminders.value).toHaveLength(1);
+    expect(cells.value).toHaveLength(1);
+  });
 });

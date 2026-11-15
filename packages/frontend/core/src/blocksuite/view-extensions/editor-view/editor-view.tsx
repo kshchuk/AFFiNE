@@ -16,6 +16,7 @@ import type { TemplateResult } from 'lit';
 import { z } from 'zod';
 
 import { patchForAudioEmbedView } from './audio/audio-view';
+import { patchDatabaseCellReminderExtension } from './database-cell-reminder';
 import { buildDocDisplayMetaExtension } from './display-meta';
 import { patchDocModeService } from './doc-mode-service';
 import { patchDocUrlExtensions } from './doc-url';
@@ -110,6 +111,7 @@ export class AffineEditorViewExtension extends ViewExtensionProvider<AffineEdito
         patchForAudioEmbedView(reactToLit),
       ])
       .register(patchDocUrlExtensions(framework))
+      .register(patchDatabaseCellReminderExtension(framework))
       .register(patchQuickSearchService(framework));
 
     if (scope === 'doc') {

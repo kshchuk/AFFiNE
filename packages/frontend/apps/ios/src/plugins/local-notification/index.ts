@@ -68,5 +68,9 @@ export function getReminderNotificationPath(
   if (extra?.kind !== 'doc-reminder' || !extra.workspaceId || !extra.docId) {
     return null;
   }
-  return `/workspace/${encodeURIComponent(extra.workspaceId)}/${encodeURIComponent(extra.docId)}`;
+  const path = `/workspace/${encodeURIComponent(extra.workspaceId)}/${encodeURIComponent(extra.docId)}`;
+  // a reminder of a database cell brings the database into view
+  return extra.databaseBlockId
+    ? `${path}?blockIds=${encodeURIComponent(extra.databaseBlockId)}`
+    : path;
 }

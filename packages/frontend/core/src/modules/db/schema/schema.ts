@@ -95,6 +95,18 @@ export const AFFiNE_WORKSPACE_USERDATA_DB_SCHEMA = {
     // when to notify, relative to the date value of the property
     offset: f.enum('on-day', '1-day', '2-days', '1-week'),
   },
+  /**
+   * Per-user reminders for the cells of `date` columns of database blocks.
+   */
+  databaseCellReminder: {
+    // `${docId}:${databaseBlockId}:${rowId}:${columnId}`
+    id: f.string().primaryKey(),
+    docId: f.string(),
+    databaseBlockId: f.string(),
+    rowId: f.string(),
+    columnId: f.string(),
+    offset: f.enum('on-day', '1-day', '2-days', '1-week'),
+  },
 } as const satisfies DBSchemaBuilder;
 export type AFFiNEWorkspaceUserdataDbSchema =
   typeof AFFiNE_WORKSPACE_USERDATA_DB_SCHEMA;

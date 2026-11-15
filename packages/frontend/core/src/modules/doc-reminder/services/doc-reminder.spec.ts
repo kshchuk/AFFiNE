@@ -14,6 +14,8 @@ function setup(
     removeReminder: vi.fn(),
     watchReminders: vi.fn(),
     watchReminder: vi.fn(),
+    setCellReminder: vi.fn(),
+    removeCellReminder: vi.fn(),
   };
   const provider = {
     checkPermission: vi.fn(async () => current),
@@ -80,5 +82,40 @@ describe('DocReminderService', () => {
     const { service, store } = setup('granted');
     service.removeReminder('doc', 'prop');
     expect(store.removeReminder).toHaveBeenCalledWith('doc', 'prop');
+  });
+
+  describe('database cells', () => {
+    const cell = {
+      docId: 'doc',
+      databaseBlockId: 'db',
+      rowId: 'row',
+      columnId: 'col',
+    };
+
+    test('saves the reminder when notifications are allowed', async () => {
+      const { service, store, provider } = setup('prompt', 'granted');
+      expect(await service.setCellReminder({ ...cell, offset: '1-day' })).toBe(
+        true
+      );
+      expect(provider.requestPermission).toHaveBeenCalledTimes(1);
+      expect(store.setCellReminder).toHaveBeenCalledWith({
+        ...cell,
+        offset: '1-day',
+      });
+    });
+
+    test('saves nothing when the user denies notifications', async () => {
+      const { service, store } = setup('denied');
+      expect(await service.setCellReminder({ ...cell, offset: '1-day' })).toBe(
+        false
+      );
+      expect(store.setCellReminder).not.toHaveBeenCalled();
+    });
+
+    test('removes a reminder', () => {
+      const { service, store } = setup('granted');
+      service.removeCellReminder(cell);
+      expect(store.removeCellReminder).toHaveBeenCalledWith(cell);
+    });
   });
 });

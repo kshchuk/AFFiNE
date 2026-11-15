@@ -6,7 +6,11 @@ export interface LocalNotificationExtra {
   kind: 'doc-reminder';
   workspaceId: string;
   docId: string;
+  /** id of the doc property, or of the column for a database cell */
   propertyId: string;
+  /** set when the reminder is for a cell of a database block */
+  databaseBlockId?: string;
+  rowId?: string;
   /** changes whenever the scheduled content or time changes */
   signature: string;
 }

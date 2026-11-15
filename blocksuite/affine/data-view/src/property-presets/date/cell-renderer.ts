@@ -1,9 +1,12 @@
 import {
+  menu,
+  type MenuConfig,
   popMenu,
   popupTargetFromElement,
 } from '@blocksuite/affine-components/context-menu';
 import { DatePicker } from '@blocksuite/affine-components/date-picker';
 import { createLitPortal } from '@blocksuite/affine-components/portal';
+import { DatabaseCellReminderProvider } from '@blocksuite/affine-shared/services';
 import { IS_MOBILE } from '@blocksuite/global/env';
 import { flip, offset } from '@floating-ui/dom';
 import { computed, signal } from '@preact/signals-core';
@@ -22,6 +25,60 @@ import { datePropertyModelConfig } from './define.js';
 
 export class DateCell extends BaseCellRenderer<number, number> {
   private _prevPortalAbortController: AbortController | null = null;
+
+  /**
+   * Reminder options, only when the app can deliver notifications and the
+   * data lives in a block of a doc.
+   */
+  private readonly reminderMenuItem = (): MenuConfig | undefined => {
+    const service = this.view.serviceGet(DatabaseCellReminderProvider);
+    const locator = this.view.manager.dataSource.locator;
+    if (!service || !locator) return;
+
+    const target = {
+      docId: locator.docId,
+      databaseBlockId: locator.blockId,
+      rowId: this.cell.rowId,
+      columnId: this.property.id,
+    };
+    const offset$ = service.offset$(target);
+    const options = service.options();
+    const label = () => {
+      const selected = options.find(o => o.value === offset$.value);
+      return selected?.label ?? service.offLabel();
+    };
+
+    return menu.subMenu({
+      name: service.title(),
+      hide: () => !this.tempValue$.value && !this.value,
+      label: () =>
+        html`${service.title()}
+          <span style="color: var(--affine-text-secondary-color)"
+            >${label()}</span
+          >`,
+      options: {
+        title: { text: service.title() },
+        items: [
+          menu.action({
+            name: service.offLabel(),
+            isSelected: offset$.value === undefined,
+            select: () => {
+              service.setOffset(target, null).catch(console.error);
+            },
+          }),
+          ...options.map(option =>
+            menu.action({
+              name: option.label,
+              isSelected: offset$.value === option.value,
+              select: () => {
+                service.setOffset(target, option.value).catch(console.error);
+              },
+            })
+          ),
+        ],
+      },
+    });
+  };
 
   private readonly openDatePicker = () => {
     if (
@@ -43,6 +100,7 @@ export class DateCell extends BaseCellRenderer<number, number> {
     );
     this._prevPortalAbortController = abortController;
     if (IS_MOBILE) {
+      const reminderItem = this.reminderMenuItem();
       popMenu(popupTargetFromElement(this), {
         options: {
           title: {
@@ -74,6 +132,7 @@ export class DateCell extends BaseCellRenderer<number, number> {
                 ${datePicker}
               </div>`;
             },
+            ...(reminderItem ? [reminderItem] : []),
           ],
         },
       });

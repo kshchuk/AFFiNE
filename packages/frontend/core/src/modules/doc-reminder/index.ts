@@ -16,7 +16,11 @@ export {
   type LocalNotificationRequest,
   type PendingLocalNotification,
 } from './providers/local-notification';
-export type { DocReminder, DocReminderOffset } from './types';
+export type {
+  DatabaseCellReminder,
+  DocReminder,
+  DocReminderOffset,
+} from './types';
 export { DOC_REMINDER_OFFSETS } from './types';
 export { DocReminderService };
 

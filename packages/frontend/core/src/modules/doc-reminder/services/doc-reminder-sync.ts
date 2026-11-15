@@ -1,12 +1,21 @@
 import { DebugLogger } from '@affine/debug';
 import { I18n } from '@affine/i18n';
 import { OnEvent, Service } from '@toeverything/infra';
-import { combineLatest, debounceTime, map, of, switchMap } from 'rxjs';
+import {
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  EMPTY,
+  map,
+  of,
+  switchMap,
+} from 'rxjs';
 
 import type { DocsService } from '../../doc';
 import type { Workspace, WorkspaceService } from '../../workspace';
 import { WorkspaceInitialized } from '../../workspace';
 import type { WorkspacePropertyService } from '../../workspace-property';
+import { watchDatabaseCellSources } from '../database-cell-source';
 import type {
   LocalNotificationProvider,
   LocalNotificationRequest,
@@ -56,7 +65,7 @@ export class DocReminderSyncService extends Service {
   onWorkspaceInitialized(_workspace: Workspace) {
     if (!this.provider) return;
 
-    const sources$ = combineLatest([
+    const docPropertySources$ = combineLatest([
       this.store.watchReminders().asObservable(),
       this.docsService.list.docsMap$.asObservable(),
       this.workspacePropertyService.properties$.asObservable(),
@@ -84,13 +93,39 @@ export class DocReminderSyncService extends Service {
         });
         return sources.length ? combineLatest(sources) : of([]);
       }),
-      map(sources => sources.filter((s): s is ReminderSource => !!s)),
+      map(sources => sources.filter((s): s is ReminderSource => !!s))
+    );
+
+    const cellSources$ = watchDatabaseCellSources(
+      this.docsService,
+      this.store.watchCellReminders().asObservable()
+    );
+
+    // An empty list is only trustworthy once the doc list and the reminders
+    // are loaded, otherwise the scheduled notifications would be cancelled
+    // on every start of the app.
+    const ready$ = combineLatest([
+      this.docsService.list.isReady$.asObservable(),
+      this.store.watchLoading().asObservable(),
+    ]).pipe(
+      map(([docsReady, loading]) => docsReady && !loading),
+      distinctUntilChanged()
+    );
+
+    const sources$ = ready$.pipe(
+      switchMap(ready =>
+        ready ? combineLatest([docPropertySources$, cellSources$]) : EMPTY
+      ),
+      map(([docPropertySources, cells]) => ({
+        sources: [...docPropertySources, ...cells.sources],
+        unresolvedDocIds: cells.unresolvedDocIds,
+      })),
       debounceTime(500)
     );
 
-    const subscription = sources$.subscribe(sources => {
+    const subscription = sources$.subscribe(({ sources, unresolvedDocIds }) => {
       this.queue = this.queue
-        .then(() => this.reconcile(sources))
+        .then(() => this.reconcile(sources, unresolvedDocIds))
         .catch(error => logger.error('failed to schedule reminders', error));
     });
     this.disposables.push(() => subscription.unsubscribe());
@@ -98,8 +133,10 @@ export class DocReminderSyncService extends Service {
 
   private toRequest(planned: PlannedReminder): LocalNotificationRequest {
     const workspaceId = this.workspaceService.workspace.id;
+    // a database cell is about its row, a doc property is about the doc
     const title =
-      planned.docTitle || I18n['com.affine.doc-reminder.untitled-doc']();
+      (planned.databaseBlockId ? planned.rowTitle : planned.docTitle) ||
+      I18n['com.affine.doc-reminder.untitled-doc']();
     const body = I18n[BODY_KEYS[planned.offset]]({
       property: planned.propertyName,
     });
@@ -113,12 +150,18 @@ export class DocReminderSyncService extends Service {
         workspaceId,
         docId: planned.docId,
         propertyId: planned.propertyId,
+        ...(planned.databaseBlockId
+          ? { databaseBlockId: planned.databaseBlockId, rowId: planned.rowId }
+          : {}),
         signature: `${planned.at.getTime()}|${title}|${body}`,
       },
     };
   }
 
-  private async reconcile(sources: ReminderSource[]) {
+  private async reconcile(
+    sources: ReminderSource[],
+    unresolvedDocIds: string[]
+  ) {
     const provider = this.provider;
     if (!provider) return;
     const workspaceId = this.workspaceService.workspace.id;
@@ -130,12 +173,14 @@ export class DocReminderSyncService extends Service {
       limit: MAX_SCHEDULED_PER_WORKSPACE,
     }).map(planned => this.toRequest(planned));
 
-    // only touch what this workspace scheduled
+    // Only touch what this workspace scheduled, and leave the docs that are
+    // not loaded yet alone: we can't tell if their reminders are still valid.
     const pending = (await provider.getPending())
       .filter(
         n =>
           n.extra?.kind === 'doc-reminder' &&
-          n.extra.workspaceId === workspaceId
+          n.extra.workspaceId === workspaceId &&
+          !unresolvedDocIds.includes(n.extra.docId ?? '')
       )
       .map(n => ({ id: n.id, signature: n.extra?.signature }));
 

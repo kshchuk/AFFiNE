@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import {
   diffNotifications,
+  formatCellDate,
   getNotificationId,
   getReminderTime,
   parseDatePropertyValue,
@@ -65,6 +66,22 @@ describe('getReminderTime', () => {
   test('returns null without a valid date', () => {
     expect(getReminderTime('', 'on-day')).toBeNull();
   });
+});
+
+describe('formatCellDate', () => {
+  test('formats the local date of a timestamp', () => {
+    expect(formatCellDate(new Date(2030, 4, 10).getTime())).toBe('2030-05-10');
+    expect(formatCellDate(new Date(2030, 0, 1, 23, 59).getTime())).toBe(
+      '2030-01-01'
+    );
+  });
+
+  test.each([undefined, null, '', '2030-05-10', NaN, Infinity])(
+    'ignores %s',
+    value => {
+      expect(formatCellDate(value)).toBeUndefined();
+    }
+  );
 });
 
 describe('getNotificationId', () => {
@@ -133,6 +150,20 @@ describe('planReminders', () => {
       ],
     });
     expect(planned.map(p => p.docId)).toEqual(['a']);
+  });
+
+  test('uses different ids for different rows of a database', () => {
+    const planned = planReminders({
+      workspaceId: 'ws',
+      now,
+      limit: 10,
+      sources: [
+        source({ databaseBlockId: 'db', rowId: 'row-1' }),
+        source({ databaseBlockId: 'db', rowId: 'row-2' }),
+        source(),
+      ],
+    });
+    expect(new Set(planned.map(p => p.id)).size).toBe(3);
   });
 
   test('uses different ids for different workspaces, docs and properties', () => {

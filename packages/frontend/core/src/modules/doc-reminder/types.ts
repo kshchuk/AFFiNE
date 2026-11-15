@@ -24,3 +24,11 @@ export interface DocReminder {
   propertyId: string;
   offset: DocReminderOffset;
 }
+
+export interface DatabaseCellReminder {
+  docId: string;
+  databaseBlockId: string;
+  rowId: string;
+  columnId: string;
+  offset: DocReminderOffset;
+}

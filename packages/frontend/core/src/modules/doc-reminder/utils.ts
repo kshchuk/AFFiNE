@@ -51,13 +51,31 @@ export function getReminderTime(
 
 export interface ReminderSource {
   docId: string;
+  /** id of the doc property, or of the column for a database cell */
   propertyId: string;
+  /** set when the reminder is for a cell of a database block */
+  databaseBlockId?: string;
+  rowId?: string;
+  /** title of the database row */
+  rowTitle?: string;
   offset: DocReminderOffset;
-  /** current value of the date property */
+  /** current value of the date property or cell, as `YYYY-MM-DD` */
   dateValue: unknown;
   docTitle: string;
   propertyName: string;
   trashed: boolean;
+}
+
+/**
+ * Format a timestamp stored in a database date cell as the local date
+ * `YYYY-MM-DD`, the same shape as the value of a date doc property.
+ */
+export function formatCellDate(value: unknown): string | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  const pad = (n: number, length = 2) => String(n).padStart(length, '0');
+  return `${pad(date.getFullYear(), 4)}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 export interface PlannedReminder extends ReminderSource {
@@ -96,7 +114,15 @@ export function planReminders(options: {
     const at = getReminderTime(source.dateValue, source.offset);
     if (!at || at.getTime() <= options.now.getTime()) continue;
     const id = getNotificationId(
-      `${options.workspaceId}:${source.docId}:${source.propertyId}`
+      [
+        options.workspaceId,
+        source.docId,
+        source.propertyId,
+        // keeps the id of doc property reminders as it was
+        ...(source.databaseBlockId
+          ? [source.databaseBlockId, source.rowId]
+          : []),
+      ].join(':')
     );
     if (usedIds.has(id)) continue; // extremely unlikely hash collision
     usedIds.add(id);
